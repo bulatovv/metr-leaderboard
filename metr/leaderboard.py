@@ -1,5 +1,6 @@
 import gradio as gr
 import polars as pl
+import os
 
 eval =  pl.scan_csv('storage/evaluation.csv')
 datasets = pl.scan_csv('storage/datasets.csv')
@@ -25,9 +26,8 @@ def eval_domains(bm25: bool, k: int) -> pl.DataFrame:
         .collect()
     )
 
-
 with gr.Blocks() as demo:
-    gr.Markdown('# METR')
+    gr.Markdown('# METR - Massive Evaluation of Text Retrieval')
     with gr.Tab("Per domain"):
         per_domain=gr.DataFrame()
     with gr.Tab("Per dataset") as second_tab:
@@ -46,7 +46,19 @@ with gr.Blocks() as demo:
     demo.load(eval_domains, inputs=[bm25, k], outputs=per_domain)
     #second_tab.select(eval_domains, inputs=[bm25, k], outputs=per_domain)
     
-    gr.Markdown('# Благодарности')
-    
+    gr.Markdown('# Acknowledgement')
+    with open('assets/ai-talent-hub.svg') as file:
+        ai_icon = file.read()
+    with open('assets/uniiiit.svg') as file:
+        uni_icon = file.read()
+   
+    gr.HTML(f"""
+        <div style="display: flex; align-items: center">
+          {ai_icon}
+          <div style='transform: scale(0.45)'>
+            {uni_icon}
+          </div>
+        </div>
+    """)
 
 demo.launch()
