@@ -6,7 +6,7 @@ eval =  pl.scan_csv('storage/evaluation.csv')
 datasets = pl.scan_csv('storage/datasets.csv')
 
 
-def eval_domains(bm25: bool, k: int) -> pl.DataFrame:
+def eval_domains(bm25: bool, k: int) -> pl.dataframe:
     metrics = ['precision', 'recall', 'f1', 'mrr']
 
     return (
@@ -26,12 +26,26 @@ def eval_domains(bm25: bool, k: int) -> pl.DataFrame:
         .collect()
     )
 
-with gr.Blocks() as demo:
+def eval_datasets(bm25: bool, k: int) -> pl.dataframe:
+    metrics = ['precision', 'recall', 'f1', 'mrr']
+
+    return (
+        eval.filter(bm25=bm25, k=k)
+        .join(datasets, on='dataset')
+        .select(
+            'model', 'dataset', 'domain', *metrics
+        )
+        .collect()
+    )
+ 
+
+
+with gr.Blocks(title='METR') as demo:
     gr.Markdown('# METR - Massive Evaluation of Text Retrieval')
     with gr.Tab("Per domain"):
         per_domain=gr.DataFrame()
     with gr.Tab("Per dataset") as second_tab:
-        gr.Button("New Tiger")
+        per_dataset=gr.DataFrame()
     
     with gr.Row(equal_height=True):
         with gr.Column():
@@ -42,9 +56,13 @@ with gr.Blocks() as demo:
     
     bm25.change(eval_domains, inputs=[bm25, k], outputs=per_domain)
     k.change(eval_domains, inputs=[bm25, k], outputs=per_domain)
-    
     demo.load(eval_domains, inputs=[bm25, k], outputs=per_domain)
-    #second_tab.select(eval_domains, inputs=[bm25, k], outputs=per_domain)
+    
+
+
+    bm25.change(eval_datasets, inputs=[bm25, k], outputs=per_dataset)
+    k.change(eval_datasets, inputs=[bm25, k], outputs=per_dataset)
+    second_tab.select(eval_datasets, inputs=[bm25, k], outputs=per_dataset)
     
     gr.Markdown('# Acknowledgement')
     with open('assets/ai-talent-hub.svg') as file:
